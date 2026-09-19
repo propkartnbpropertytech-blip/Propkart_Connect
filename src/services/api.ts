@@ -1,7 +1,7 @@
 import { FormSchema, FormSubmissionPayload, SubmissionResult, UploadedMediaItem } from '../types/form';
 
-// Fallback to live VPS IP if env not explicitly set
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://200.234.36.120:5001/api/v1';
+// Fallback to live HTTPS domain
+const BASE_URL = import.meta.env.VITE_API_URL || 'https://api-propkart.nbpropertytech.com/api/v1';
 
 export async function fetchActiveForm(slug = 'property-registration'): Promise<FormSchema> {
   const res = await fetch(`${BASE_URL}/forms/active?slug=${encodeURIComponent(slug)}`, {
