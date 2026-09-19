@@ -1,7 +1,6 @@
 import { FormSchema, FormSubmissionPayload, SubmissionResult, UploadedMediaItem } from '../types/form';
 
-// Fallback to live HTTPS domain
-const BASE_URL = import.meta.env.VITE_API_URL || 'https://api-propkart.nbpropertytech.com/api/v1';
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5050/api/v1';
 
 export async function fetchActiveForm(slug = 'property-registration'): Promise<FormSchema> {
   const res = await fetch(`${BASE_URL}/forms/active?slug=${encodeURIComponent(slug)}`, {
