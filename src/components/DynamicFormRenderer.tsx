@@ -5,14 +5,11 @@ import { submitRegistrationForm } from '../services/api';
 import { useFormDraft } from '../hooks/useFormDraft';
 import { AppSnackbar } from './common/AppSnackbar';
 import {
-  ChevronRight,
-  ChevronLeft,
-  Check,
   Send,
   Loader2,
-  Sparkles,
-  Info,
-  Clock,
+  Building2,
+  ShieldCheck,
+  CheckCircle2,
 } from 'lucide-react';
 
 interface DynamicFormRendererProps {
@@ -21,7 +18,7 @@ interface DynamicFormRendererProps {
 }
 
 export const DynamicFormRenderer: React.FC<DynamicFormRendererProps> = ({ schema, onSuccess }) => {
-  const { version, sections } = schema;
+  const { version, sections, title, description } = schema;
 
   const {
     draft,
@@ -31,7 +28,6 @@ export const DynamicFormRenderer: React.FC<DynamicFormRendererProps> = ({ schema
     clearDraft,
   } = useFormDraft(version.id);
 
-  const [currentStep, setCurrentStep] = useState(0);
   const [uploadedMedia, setUploadedMedia] = useState<UploadedMediaItem[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -41,72 +37,53 @@ export const DynamicFormRenderer: React.FC<DynamicFormRendererProps> = ({ schema
     type: 'info',
   });
 
-  const activeSection = sections[currentStep];
+  // Collect all active fields from the schema into a single list
+  const allFields = (sections || [])
+    .flatMap((sec) => sec.fields || [])
+    .filter((f) => f.is_active !== false)
+    .sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0));
 
-  // Validate fields in a specific section
-  const validateSection = (sectionIndex: number): boolean => {
-    const sec = sections[sectionIndex];
-    if (!sec) return true;
-
+  // Single-page form validation
+  const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
+    let firstErrorFieldKey: string | null = null;
 
-    for (const field of sec.fields) {
-      if (!field.is_active) continue;
-
+    for (const field of allFields) {
       const val = draft[field.field_key];
-      const rules = field.validation_rules || {};
 
       // Required Check
       if (field.is_required) {
         if (field.field_type === 'photos') {
-          const count = uploadedMedia.filter((m) => m.field_key === field.field_key && m.media_type === 'photo').length;
+          const count = uploadedMedia.filter((m) => m.media_type === 'photo').length;
           if (count === 0) {
             newErrors[field.field_key] = 'Please upload at least 1 property photo.';
+            if (!firstErrorFieldKey) firstErrorFieldKey = field.field_key;
           }
         } else if (field.field_type === 'consent') {
           if (!val) {
-            newErrors[field.field_key] = 'You must confirm the owner declaration to proceed.';
+            newErrors[field.field_key] = 'Please accept the declaration to proceed.';
+            if (!firstErrorFieldKey) firstErrorFieldKey = field.field_key;
           }
         } else if (val === undefined || val === null || (typeof val === 'string' && val.trim() === '')) {
           newErrors[field.field_key] = `${field.label} is required.`;
+          if (!firstErrorFieldKey) firstErrorFieldKey = field.field_key;
           continue;
         }
       }
 
       if (val === undefined || val === null || val === '') continue;
 
-      // Type validations
+      // Phone validation (at least 10 digits)
       if (field.field_type === 'phone') {
         const clean = String(val).replace(/\D/g, '');
-        if (!/^(91)?[6-9]\d{9}$/.test(clean)) {
-          newErrors[field.field_key] = 'Please enter a valid 10-digit Indian mobile number.';
+        if (clean.length < 10) {
+          newErrors[field.field_key] = 'Please enter a valid 10-digit mobile number.';
+          if (!firstErrorFieldKey) firstErrorFieldKey = field.field_key;
         }
       } else if (field.field_type === 'email') {
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(val).trim())) {
           newErrors[field.field_key] = 'Please enter a valid email address.';
-        }
-      } else if (['number', 'currency', 'area'].includes(field.field_type)) {
-        const num = Number(val);
-        if (isNaN(num)) {
-          newErrors[field.field_key] = 'Must be a valid number.';
-        } else {
-          if (rules.min_value !== undefined && num < rules.min_value) {
-            newErrors[field.field_key] = `Minimum value is ${rules.min_value}.`;
-          }
-          if (rules.max_value !== undefined && num > rules.max_value) {
-            newErrors[field.field_key] = `Maximum value is ${rules.max_value}.`;
-          }
-        }
-      } else if (['text', 'textarea', 'name', 'direction'].includes(field.field_type)) {
-        const len = String(val).trim().length;
-        if (rules.min_length !== undefined && len < rules.min_length) {
-          newErrors[field.field_key] = `Must be at least ${rules.min_length} characters.`;
-        }
-      } else if (field.field_type === 'google_location') {
-        let locUrl = typeof val === 'object' ? (val.url || val.location_url) : val;
-        const hasCoords = typeof val === 'object' && val.lat && val.lng;
-        if (rules.url_required && !hasCoords && (!locUrl || !String(locUrl).startsWith('http'))) {
-          newErrors[field.field_key] = 'Please provide a valid Google Maps location link or use GPS.';
+          if (!firstErrorFieldKey) firstErrorFieldKey = field.field_key;
         }
       }
     }
@@ -114,9 +91,17 @@ export const DynamicFormRenderer: React.FC<DynamicFormRendererProps> = ({ schema
     setErrors(newErrors);
 
     if (Object.keys(newErrors).length > 0) {
+      // Scroll smoothly to the first error input
+      if (firstErrorFieldKey) {
+        const el = document.getElementById(firstErrorFieldKey);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          el.focus();
+        }
+      }
       setSnackbar({
         isOpen: true,
-        message: 'Please complete the required fields marked in red.',
+        message: 'Please complete the highlighted required fields.',
         type: 'error',
       });
       return false;
@@ -125,29 +110,11 @@ export const DynamicFormRenderer: React.FC<DynamicFormRendererProps> = ({ schema
     return true;
   };
 
-  const handleNext = () => {
-    if (validateSection(currentStep)) {
-      if (currentStep < sections.length - 1) {
-        setCurrentStep((prev) => prev + 1);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      }
-    }
-  };
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-  const handlePrev = () => {
-    if (currentStep > 0) {
-      setCurrentStep((prev) => prev - 1);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  };
-
-  const handleSubmit = async () => {
-    // Validate current and previous sections
-    for (let i = 0; i <= currentStep; i++) {
-      if (!validateSection(i)) {
-        setCurrentStep(i);
-        return;
-      }
+    if (!validateForm()) {
+      return;
     }
 
     setIsSubmitting(true);
@@ -175,15 +142,13 @@ export const DynamicFormRenderer: React.FC<DynamicFormRendererProps> = ({ schema
     }
   };
 
-  const isLastStep = currentStep === sections.length - 1;
-
   return (
-    <div className="max-w-3xl mx-auto px-4 py-6 sm:py-10 space-y-6">
+    <div className="max-w-3xl mx-auto px-3.5 sm:px-6 py-6 sm:py-12 space-y-6">
       {/* Draft Restored Banner */}
       {isDraftRestored && (
         <div className="flex items-center justify-between gap-3 px-4 py-3 bg-emerald-50 border border-emerald-200 rounded-2xl text-xs text-emerald-900 shadow-2xs animate-in fade-in duration-200">
           <div className="flex items-center gap-2">
-            <Clock className="w-4 h-4 text-emerald-600 shrink-0" />
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
             <span>We restored your previous in-progress registration draft.</span>
           </div>
           <button
@@ -196,155 +161,102 @@ export const DynamicFormRenderer: React.FC<DynamicFormRendererProps> = ({ schema
         </div>
       )}
 
-      {/* Step Wizard Progress Bar */}
-      <div className="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-sm">
-        <div className="flex items-center justify-between gap-2 overflow-x-auto pb-1 scrollbar-none">
-          {sections.map((sec, idx) => {
-            const isDone = idx < currentStep;
-            const isCurrent = idx === currentStep;
-
-            return (
-              <div
-                key={sec.id}
-                onClick={() => idx < currentStep && setCurrentStep(idx)}
-                className={`flex items-center gap-2.5 shrink-0 ${
-                  idx < currentStep ? 'cursor-pointer' : ''
-                }`}
-              >
-                <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
-                    isDone
-                      ? 'bg-brand-600 text-white shadow-xs'
-                      : isCurrent
-                      ? 'bg-brand-50 border-2 border-brand-600 text-brand-700 ring-4 ring-brand-500/10'
-                      : 'bg-slate-100 text-slate-400 border border-slate-200'
-                  }`}
-                >
-                  {isDone ? <Check className="w-4 h-4" /> : idx + 1}
-                </div>
-
-                <div className="hidden md:block text-left">
-                  <div className={`text-xs font-semibold leading-tight ${isCurrent ? 'text-slate-900' : 'text-slate-500'}`}>
-                    {sec.title}
-                  </div>
-                  <div className="text-[10px] text-slate-400">Step {idx + 1} of {sections.length}</div>
-                </div>
-
-                {idx < sections.length - 1 && (
-                  <div className="w-6 sm:w-8 h-0.5 bg-slate-200 ml-2 hidden sm:block" />
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Form Content Card */}
-      <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm p-6 sm:p-9 space-y-7">
-        {/* Section Header */}
-        <div className="border-b border-slate-100 pb-5">
-          <div className="flex items-center gap-2 text-brand-600 text-xs font-bold tracking-wider uppercase">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Step {currentStep + 1} of {sections.length}</span>
+      {/* Main Single Page Form Card */}
+      <div className="bg-white rounded-3xl border border-slate-200 shadow-md p-5 sm:p-10 space-y-6 sm:space-y-8">
+        {/* Form Header */}
+        <div className="border-b border-slate-100 pb-6 text-center space-y-2">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-50 border border-brand-200 text-brand-700 text-xs font-semibold mb-1">
+            <ShieldCheck className="w-3.5 h-3.5 text-brand-600" />
+            <span>Verified Direct Owner Registration</span>
           </div>
-          <h2 className="text-xl sm:text-2xl font-bold font-display text-slate-900 tracking-tight mt-1">
-            {activeSection.title}
-          </h2>
-          {activeSection.description && (
-            <p className="text-xs sm:text-sm text-slate-500 mt-1 leading-relaxed">
-              {activeSection.description}
-            </p>
+
+          <h1 className="text-2xl sm:text-3xl font-bold font-display text-slate-900 tracking-tight">
+            {title || 'Instant Property Registration'}
+          </h1>
+
+          <p className="text-xs sm:text-sm text-slate-500 max-w-lg mx-auto leading-relaxed">
+            {description || 'Complete the fields below to list your property. All data is saved directly and reviewed by our verified property team.'}
+          </p>
+        </div>
+
+        {/* Dynamic Fields Form */}
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {allFields.length === 0 ? (
+            <div className="text-center py-12 text-slate-400 space-y-2">
+              <Building2 className="w-8 h-8 mx-auto text-slate-300" />
+              <p className="text-xs">No active fields found in this form.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              {allFields.map((field) => {
+                // Determine full width fields
+                const isFullWidth = [
+                  'textarea',
+                  'remarks',
+                  'google_location',
+                  'direction',
+                  'photos',
+                  'videos',
+                  'consent',
+                  'multiselect',
+                ].includes(field.field_type);
+
+                return (
+                  <div
+                    key={field.field_key}
+                    id={`field_container_${field.field_key}`}
+                    className={isFullWidth ? 'md:col-span-2' : 'md:col-span-1'}
+                  >
+                    <DynamicField
+                      field={field}
+                      value={draft[field.field_key]}
+                      onChange={(val) => {
+                        updateField(field.field_key, val);
+                        if (errors[field.field_key]) {
+                          const copy = { ...errors };
+                          delete copy[field.field_key];
+                          setErrors(copy);
+                        }
+                      }}
+                      error={errors[field.field_key]}
+                      uploadedMedia={uploadedMedia}
+                      onMediaChange={setUploadedMedia}
+                    />
+                  </div>
+                );
+              })}
+            </div>
           )}
-        </div>
 
-        {/* Dynamic Fields Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          {activeSection.fields
-            .filter((f) => f.is_active)
-            .map((field) => {
-              // Full width for long inputs, textareas, media, and location
-              const isFullWidth = [
-                'textarea',
-                'remarks',
-                'google_location',
-                'photos',
-                'videos',
-                'consent',
-                'multiselect',
-              ].includes(field.field_type);
-
-              return (
-                <div
-                  key={field.field_key}
-                  className={isFullWidth ? 'md:col-span-2' : 'md:col-span-1'}
-                >
-                  <DynamicField
-                    field={field}
-                    value={draft[field.field_key]}
-                    onChange={(val) => {
-                      updateField(field.field_key, val);
-                      if (errors[field.field_key]) {
-                        const copy = { ...errors };
-                        delete copy[field.field_key];
-                        setErrors(copy);
-                      }
-                    }}
-                    error={errors[field.field_key]}
-                    uploadedMedia={uploadedMedia}
-                    onMediaChange={setUploadedMedia}
-                  />
-                </div>
-              );
-            })}
-        </div>
-
-        {/* Footer Navigation Buttons */}
-        <div className="pt-6 border-t border-slate-100 flex items-center justify-between gap-4">
-          <button
-            type="button"
-            onClick={handlePrev}
-            disabled={currentStep === 0 || isSubmitting}
-            className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-300 text-slate-700 text-xs font-semibold hover:bg-slate-50 active:scale-95 transition-all ${
-              currentStep === 0 ? 'invisible' : ''
-            }`}
-          >
-            <ChevronLeft className="w-4 h-4" />
-            <span>Previous Step</span>
-          </button>
-
-          {isLastStep ? (
+          {/* Submit Button */}
+          <div className="pt-6 border-t border-slate-100">
             <button
-              type="button"
-              onClick={handleSubmit}
-              disabled={isSubmitting}
-              className="inline-flex items-center justify-center gap-2.5 px-6 py-3 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-semibold text-sm shadow-md hover:shadow-lg active:scale-98 transition-all disabled:opacity-50"
+              type="submit"
+              disabled={isSubmitting || allFields.length === 0}
+              className="w-full py-4 px-6 rounded-2xl bg-brand-600 hover:bg-brand-500 text-white font-bold text-sm sm:text-base shadow-lg shadow-brand-600/25 active:scale-98 transition-all flex items-center justify-center gap-3 disabled:opacity-50 cursor-pointer"
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Submitting Registration...</span>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <span>Submitting Property Registration...</span>
                 </>
               ) : (
                 <>
-                  <Send className="w-4 h-4" />
+                  <Send className="w-5 h-5" />
                   <span>Submit Property Registration</span>
                 </>
               )}
             </button>
-          ) : (
-            <button
-              type="button"
-              onClick={handleNext}
-              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-semibold text-xs shadow-sm hover:shadow active:scale-98 transition-all"
-            >
-              <span>Next Step</span>
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          )}
-        </div>
+
+            <div className="flex items-center justify-center gap-2 mt-4 text-[11px] text-slate-400">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Safe & Secure • Saved directly into PropKart Database • 100% Free Listing</span>
+            </div>
+          </div>
+        </form>
       </div>
 
-      {/* Snackbar feedback */}
+      {/* Snackbar Notification */}
       <AppSnackbar
         message={snackbar.message}
         type={snackbar.type}
