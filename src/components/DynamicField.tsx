@@ -325,6 +325,26 @@ export const DynamicField: React.FC<DynamicFieldProps> = ({
     }
 
     case 'direction': {
+      const landmarkSuggestions = [
+        'Near Metro Station',
+        'Near Main Market',
+        'Opposite Garden/Park',
+        'Near School/College',
+        'Near Hospital',
+        'Main Road Facing',
+        'Corner Property',
+        'Near Highway',
+      ];
+
+      const handleAddSuggestion = (sug: string) => {
+        const current = String(value || '').trim();
+        if (!current) {
+          onChange(sug);
+        } else if (!current.toLowerCase().includes(sug.toLowerCase())) {
+          onChange(`${current}, ${sug}`);
+        }
+      };
+
       return (
         <div>
           {renderLabel()}
@@ -339,6 +359,22 @@ export const DynamicField: React.FC<DynamicFieldProps> = ({
             />
             <Compass className="w-4 h-4 text-slate-400 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           </div>
+
+          {/* Landmark Suggestion Chips */}
+          <div className="mt-2 flex flex-wrap items-center gap-1.5">
+            <span className="text-[11px] font-semibold text-slate-400 mr-1 select-none">Quick Suggestions:</span>
+            {landmarkSuggestions.map((sug) => (
+              <button
+                type="button"
+                key={sug}
+                onClick={() => handleAddSuggestion(sug)}
+                className="px-2.5 py-1 rounded-full text-[11px] font-medium bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200 active:scale-95 text-slate-700 transition-all border border-black/[0.04] cursor-pointer"
+              >
+                + {sug}
+              </button>
+            ))}
+          </div>
+
           {renderFeedback()}
         </div>
       );

@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useActiveForm } from './hooks/useActiveForm';
 import { DynamicFormRenderer } from './components/DynamicFormRenderer';
 import { SuccessView } from './components/SuccessView';
+import { PropertyShowcaseView } from './components/PropertyShowcaseView';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
 import { SkeletonLoader } from './components/common/SkeletonLoader';
@@ -12,6 +13,28 @@ export const App: React.FC = () => {
   const { form, loading, error, retry } = useActiveForm();
   const [submissionSuccess, setSubmissionSuccess] = useState<SubmissionResult | null>(null);
   const [submittedData, setSubmittedData] = useState<Record<string, any>>({});
+
+  // Check URL params for ?view=PK-REG-... or /property/PK-REG-...
+  const getInitialViewCode = (): string | null => {
+    const params = new URLSearchParams(window.location.search);
+    const viewParam = params.get('view') || params.get('property') || params.get('code');
+    if (viewParam) return viewParam;
+
+    const pathMatch = window.location.pathname.match(/\/property\/([A-Za-z0-9-_]+)/);
+    if (pathMatch) return pathMatch[1];
+
+    return null;
+  };
+
+  const [viewCode, setViewCode] = useState<string | null>(getInitialViewCode());
+
+  useEffect(() => {
+    const handlePopState = () => {
+      setViewCode(getInitialViewCode());
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
   const handleSuccess = (result: SubmissionResult, data: Record<string, any>) => {
     setSubmissionSuccess(result);
@@ -49,7 +72,15 @@ export const App: React.FC = () => {
           </div>
         )}
 
-        {!loading && !error && form && (
+        {viewCode ? (
+          <PropertyShowcaseView
+            registrationCode={viewCode}
+            onBackToForm={() => {
+              setViewCode(null);
+              window.history.pushState({}, '', window.location.pathname);
+            }}
+          />
+        ) : !loading && !error && form ? (
           <>
             {submissionSuccess ? (
               <SuccessView
@@ -65,7 +96,7 @@ export const App: React.FC = () => {
               />
             )}
           </>
-        )}
+        ) : null}
       </main>
 
       <Footer />

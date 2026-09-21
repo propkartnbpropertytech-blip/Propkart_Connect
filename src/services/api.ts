@@ -63,3 +63,23 @@ export async function verifyRegistrationCode(code: string): Promise<any> {
   const json = await res.json();
   return json.data;
 }
+
+export async function checkPhoneDuplicate(phone: string): Promise<{ exists: boolean; message?: string }> {
+  const clean = phone.replace(/\D/g, '').slice(-10);
+  if (clean.length < 10) return { exists: false };
+  const res = await fetch(`${BASE_URL}/form-submissions/check-phone?phone=${encodeURIComponent(clean)}`);
+  if (!res.ok) return { exists: false };
+  const json = await res.json();
+  return json;
+}
+
+export async function fetchPublicProperty(code: string): Promise<any> {
+  const res = await fetch(`${BASE_URL}/form-submissions/public-property/${encodeURIComponent(code)}`);
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || 'Property details not found');
+  }
+  const json = await res.json();
+  return json.data;
+}
+

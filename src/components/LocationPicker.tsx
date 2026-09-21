@@ -127,9 +127,21 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
 
       {/* Google Maps URL Input */}
       <div>
-        <label className="block text-xs font-semibold text-slate-800 mb-1.5">
-          Google Maps Link {required && <span className="text-rose-500">*</span>}
-        </label>
+        <div className="flex items-center justify-between mb-1.5">
+          <label className="block text-xs font-semibold text-slate-800">
+            Google Maps Link {required && <span className="text-rose-500">*</span>}
+          </label>
+          <a
+            href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(locVal.address || 'Surat Gujarat')}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600 hover:text-emerald-700 transition-colors"
+            title="Open Google Maps to find and copy your property link"
+          >
+            <span>Open Google Maps</span>
+            <ExternalLink className="w-3 h-3" />
+          </a>
+        </div>
         <div className="relative">
           <input
             type="url"
@@ -162,6 +174,12 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
               )}
             </div>
           )}
+        </div>
+
+        {/* Suggestion / Tip */}
+        <div className="mt-1.5 flex items-center justify-between text-[11px] text-slate-400 px-0.5">
+          <span>Supported: <strong className="text-slate-500 font-mono">maps.app.goo.gl</strong> or <strong className="text-slate-500 font-mono">google.com/maps</strong></span>
+          <span className="hidden sm:inline">Tip: Open Google Maps &gt; Share &gt; Copy Link</span>
         </div>
 
         {/* Display detected coordinates */}
