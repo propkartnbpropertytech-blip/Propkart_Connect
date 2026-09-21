@@ -8,7 +8,7 @@ import {
   Send,
   Loader2,
   Building2,
-  ShieldCheck,
+  Lock,
   CheckCircle2,
 } from 'lucide-react';
 
@@ -73,15 +73,16 @@ export const DynamicFormRenderer: React.FC<DynamicFormRendererProps> = ({ schema
 
       if (val === undefined || val === null || val === '') continue;
 
-      // Phone validation (at least 10 digits)
+      // Type-specific Validations
       if (field.field_type === 'phone') {
-        const clean = String(val).replace(/\D/g, '');
-        if (clean.length < 10) {
+        const phoneDigits = String(val).replace(/\D/g, '');
+        if (phoneDigits.length !== 10) {
           newErrors[field.field_key] = 'Please enter a valid 10-digit mobile number.';
           if (!firstErrorFieldKey) firstErrorFieldKey = field.field_key;
         }
       } else if (field.field_type === 'email') {
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(val).trim())) {
+        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailPattern.test(String(val).trim())) {
           newErrors[field.field_key] = 'Please enter a valid email address.';
           if (!firstErrorFieldKey) firstErrorFieldKey = field.field_key;
         }
@@ -99,20 +100,11 @@ export const DynamicFormRenderer: React.FC<DynamicFormRendererProps> = ({ schema
 
     setErrors(newErrors);
 
-    if (Object.keys(newErrors).length > 0) {
-      // Scroll smoothly to the first error input
-      if (firstErrorFieldKey) {
-        const el = document.getElementById(firstErrorFieldKey);
-        if (el) {
-          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          el.focus();
-        }
+    if (firstErrorFieldKey) {
+      const el = document.getElementById(`field_container_${firstErrorFieldKey}`);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
-      setSnackbar({
-        isOpen: true,
-        message: 'Please complete the highlighted required fields.',
-        type: 'error',
-      });
       return false;
     }
 
@@ -123,6 +115,11 @@ export const DynamicFormRenderer: React.FC<DynamicFormRendererProps> = ({ schema
     e.preventDefault();
 
     if (!validateForm()) {
+      setSnackbar({
+        isOpen: true,
+        message: 'Please complete all required fields correctly.',
+        type: 'error',
+      });
       return;
     }
 
@@ -152,18 +149,18 @@ export const DynamicFormRenderer: React.FC<DynamicFormRendererProps> = ({ schema
   };
 
   return (
-    <div className="max-w-3xl mx-auto px-3.5 sm:px-6 py-6 sm:py-12 space-y-6">
+    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-12 space-y-6">
       {/* Draft Restored Banner */}
       {isDraftRestored && (
-        <div className="flex items-center justify-between gap-3 px-4 py-3 bg-emerald-50 border border-emerald-200 rounded-2xl text-xs text-emerald-900 shadow-2xs animate-in fade-in duration-200">
+        <div className="flex items-center justify-between gap-3 px-4 py-3 bg-white border border-black/[0.06] rounded-2xl text-xs text-slate-800 shadow-apple-sm animate-in fade-in duration-200">
           <div className="flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-            <span>We restored your previous in-progress registration draft.</span>
+            <span className="font-medium">Previous draft restored</span>
           </div>
           <button
             type="button"
             onClick={() => setIsDraftRestored(false)}
-            className="font-semibold text-emerald-700 hover:text-emerald-900"
+            className="font-medium text-slate-500 hover:text-slate-900 px-2 py-1 rounded-md transition-colors"
           >
             Dismiss
           </button>
@@ -171,21 +168,17 @@ export const DynamicFormRenderer: React.FC<DynamicFormRendererProps> = ({ schema
       )}
 
       {/* Main Single Page Form Card */}
-      <div className="bg-white rounded-3xl border border-slate-200 shadow-md p-5 sm:p-10 space-y-6 sm:space-y-8">
-        {/* Form Header */}
-        <div className="border-b border-slate-100 pb-6 text-center space-y-2">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-50 border border-brand-200 text-brand-700 text-xs font-semibold mb-1">
-            <ShieldCheck className="w-3.5 h-3.5 text-brand-600" />
-            <span>Verified Direct Owner Registration</span>
-          </div>
-
-          <h1 className="text-2xl sm:text-3xl font-bold font-display text-slate-900 tracking-tight">
+      <div className="bg-white rounded-3xl border border-black/[0.06] shadow-apple sm:shadow-apple-lg p-5 sm:p-8 md:p-10 space-y-6 sm:space-y-8">
+        {/* Clean Apple Form Header */}
+        <div className="border-b border-black/[0.06] pb-6 text-center space-y-1.5">
+          <h1 className="text-2xl sm:text-3xl font-semibold text-slate-900 tracking-tight">
             {title || 'Instant Property Registration'}
           </h1>
-
-          <p className="text-xs sm:text-sm text-slate-500 max-w-lg mx-auto leading-relaxed">
-            {description || 'Complete the fields below to list your property. All data is saved directly and reviewed by our verified property team.'}
-          </p>
+          {description && (
+            <p className="text-xs sm:text-sm text-slate-500 max-w-md mx-auto leading-relaxed">
+              {description}
+            </p>
+          )}
         </div>
 
         {/* Dynamic Fields Form */}
@@ -193,12 +186,11 @@ export const DynamicFormRenderer: React.FC<DynamicFormRendererProps> = ({ schema
           {allFields.length === 0 ? (
             <div className="text-center py-12 text-slate-400 space-y-2">
               <Building2 className="w-8 h-8 mx-auto text-slate-300" />
-              <p className="text-xs">No active fields found in this form.</p>
+              <p className="text-xs">No active fields configured.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
               {allFields.map((field) => {
-                // Determine full width fields
                 const isFullWidth = [
                   'textarea',
                   'remarks',
@@ -237,29 +229,29 @@ export const DynamicFormRenderer: React.FC<DynamicFormRendererProps> = ({ schema
             </div>
           )}
 
-          {/* Submit Button */}
-          <div className="pt-6 border-t border-slate-100">
+          {/* Submit Action */}
+          <div className="pt-6 border-t border-black/[0.06] space-y-3">
             <button
               type="submit"
               disabled={isSubmitting || allFields.length === 0}
-              className="w-full py-4 px-6 rounded-2xl bg-brand-600 hover:bg-brand-500 text-white font-bold text-sm sm:text-base shadow-lg shadow-brand-600/25 active:scale-98 transition-all flex items-center justify-center gap-3 disabled:opacity-50 cursor-pointer"
+              className="w-full py-3.5 sm:py-4 px-6 rounded-full bg-[#1d1d1f] hover:bg-black active:scale-[0.98] transition-all text-white font-semibold text-sm sm:text-base shadow-apple flex items-center justify-center gap-2.5 disabled:opacity-40 cursor-pointer"
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  <span>Submitting Property Registration...</span>
+                  <Loader2 className="w-4 h-4 animate-spin text-white" />
+                  <span>Submitting...</span>
                 </>
               ) : (
                 <>
-                  <Send className="w-5 h-5" />
+                  <Send className="w-4 h-4 text-white" />
                   <span>Submit Property Registration</span>
                 </>
               )}
             </button>
 
-            <div className="flex items-center justify-center gap-2 mt-4 text-[11px] text-slate-400">
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-              <span>Safe & Secure • Saved directly into PropKart Database • 100% Free Listing</span>
+            <div className="flex items-center justify-center gap-1.5 text-[11px] text-slate-400">
+              <Lock className="w-3 h-3 text-slate-400" />
+              <span>Encrypted submission</span>
             </div>
           </div>
         </form>

@@ -2,7 +2,7 @@ import React from 'react';
 import { FormField, UploadedMediaItem } from '../types/form';
 import { LocationPicker } from './LocationPicker';
 import { MediaUploader } from './MediaUploader';
-import { User, Phone, Mail, IndianRupee, Compass, Layers, Check } from 'lucide-react';
+import { User, Phone, Mail, IndianRupee, Compass, Check } from 'lucide-react';
 
 interface DynamicFieldProps {
   field: FormField;
@@ -33,12 +33,19 @@ export const DynamicField: React.FC<DynamicFieldProps> = ({
     options = [],
   } = field;
 
+  // Apple-style input baseline class
+  const inputBaseClass = `w-full px-4 py-3 text-sm rounded-2xl border bg-slate-50/70 hover:bg-slate-50 focus:bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-4 transition-all duration-150 ${
+    error
+      ? 'border-rose-300 focus:border-rose-500 focus:ring-rose-500/10'
+      : 'border-black/[0.08] hover:border-black/[0.16] focus:border-black/60 focus:ring-black/[0.04]'
+  }`;
+
   // Render Label
   const renderLabel = () => {
-    if (field_type === 'consent') return null; // Consent renders label inside checkbox
+    if (field_type === 'consent') return null;
     return (
       <div className="flex justify-between items-baseline mb-1.5">
-        <label htmlFor={field_key} className="block text-xs font-semibold text-slate-700 tracking-tight">
+        <label htmlFor={field_key} className="block text-xs font-semibold text-slate-800 tracking-tight">
           {label}
           {is_required && <span className="text-rose-500 ml-1 font-bold">*</span>}
         </label>
@@ -51,11 +58,11 @@ export const DynamicField: React.FC<DynamicFieldProps> = ({
     );
   };
 
-  // Render Helper and Error Text
+  // Render Feedback
   const renderFeedback = () => (
     <div className="mt-1 space-y-0.5">
       {error && <p className="text-xs text-rose-500 font-medium">{error}</p>}
-      {description && !error && <p className="text-[11px] text-slate-500">{description}</p>}
+      {description && !error && <p className="text-[11px] text-slate-400">{description}</p>}
     </div>
   );
 
@@ -74,14 +81,10 @@ export const DynamicField: React.FC<DynamicFieldProps> = ({
               onChange={(e) => onChange(e.target.value)}
               placeholder={placeholder || `Enter ${label.toLowerCase()}`}
               maxLength={validation_rules.max_length || 200}
-              className={`w-full px-3.5 py-2.5 text-sm rounded-xl border bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 transition-all ${
-                error
-                  ? 'border-rose-300 focus:border-rose-500 focus:ring-rose-500/20'
-                  : 'border-slate-300 focus:border-brand-600 focus:ring-brand-600/20'
-              }`}
+              className={inputBaseClass}
             />
             {field_type === 'name' && (
-              <User className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <User className="w-4 h-4 text-slate-400 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             )}
           </div>
           {renderFeedback()}
@@ -90,14 +93,18 @@ export const DynamicField: React.FC<DynamicFieldProps> = ({
     }
 
     case 'phone': {
-      // Auto strip non-digit
       const rawVal = value ? String(value).replace(/\D/g, '') : '';
       return (
         <div>
           {renderLabel()}
-          <div className="relative flex rounded-xl border border-slate-300 focus-within:border-brand-600 focus-within:ring-2 focus-within:ring-brand-600/20 transition-all overflow-hidden bg-white">
-            <div className="flex items-center gap-1 px-3 bg-slate-100/80 border-r border-slate-200 text-xs font-semibold text-slate-700 select-none">
-              <span>🇮🇳</span>
+          <div
+            className={`relative flex rounded-2xl border bg-slate-50/70 hover:bg-slate-50 focus-within:bg-white focus-within:ring-4 transition-all duration-150 overflow-hidden ${
+              error
+                ? 'border-rose-300 focus-within:border-rose-500 focus-within:ring-rose-500/10'
+                : 'border-black/[0.08] hover:border-black/[0.16] focus-within:border-black/60 focus-within:ring-black/[0.04]'
+            }`}
+          >
+            <div className="flex items-center gap-1 px-3.5 bg-black/[0.02] border-r border-black/[0.06] text-xs font-semibold text-slate-700 select-none">
               <span>+91</span>
             </div>
             <input
@@ -110,9 +117,9 @@ export const DynamicField: React.FC<DynamicFieldProps> = ({
               }}
               placeholder={placeholder || '9876543210'}
               maxLength={10}
-              className="w-full px-3.5 py-2.5 text-sm bg-transparent text-slate-900 placeholder:text-slate-400 focus:outline-none tracking-wider font-mono"
+              className="w-full px-3.5 py-3 text-sm bg-transparent text-slate-900 placeholder:text-slate-400 focus:outline-none tracking-wider font-mono"
             />
-            <div className="flex items-center pr-3">
+            <div className="flex items-center pr-3.5">
               <Phone className="w-4 h-4 text-slate-400 pointer-events-none" />
             </div>
           </div>
@@ -132,13 +139,9 @@ export const DynamicField: React.FC<DynamicFieldProps> = ({
               value={value || ''}
               onChange={(e) => onChange(e.target.value)}
               placeholder={placeholder || 'name@example.com'}
-              className={`w-full px-3.5 py-2.5 text-sm rounded-xl border bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 transition-all ${
-                error
-                  ? 'border-rose-300 focus:border-rose-500 focus:ring-rose-500/20'
-                  : 'border-slate-300 focus:border-brand-600 focus:ring-brand-600/20'
-              }`}
+              className={inputBaseClass}
             />
-            <Mail className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <Mail className="w-4 h-4 text-slate-400 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           </div>
           {renderFeedback()}
         </div>
@@ -153,9 +156,15 @@ export const DynamicField: React.FC<DynamicFieldProps> = ({
       return (
         <div>
           {renderLabel()}
-          <div className="relative flex rounded-xl border border-slate-300 focus-within:border-brand-600 focus-within:ring-2 focus-within:ring-brand-600/20 transition-all overflow-hidden bg-white">
+          <div
+            className={`relative flex rounded-2xl border bg-slate-50/70 hover:bg-slate-50 focus-within:bg-white focus-within:ring-4 transition-all duration-150 overflow-hidden ${
+              error
+                ? 'border-rose-300 focus-within:border-rose-500 focus-within:ring-rose-500/10'
+                : 'border-black/[0.08] hover:border-black/[0.16] focus-within:border-black/60 focus-within:ring-black/[0.04]'
+            }`}
+          >
             {isCurrency && (
-              <div className="flex items-center px-3 bg-slate-100/80 border-r border-slate-200 text-slate-700 select-none">
+              <div className="flex items-center px-3.5 bg-black/[0.02] border-r border-black/[0.06] text-slate-700 select-none">
                 <IndianRupee className="w-3.5 h-3.5" />
               </div>
             )}
@@ -167,10 +176,10 @@ export const DynamicField: React.FC<DynamicFieldProps> = ({
               placeholder={placeholder || '0'}
               min={validation_rules.min_value}
               max={validation_rules.max_value}
-              className="w-full px-3.5 py-2.5 text-sm bg-transparent text-slate-900 placeholder:text-slate-400 focus:outline-none"
+              className="w-full px-3.5 py-3 text-sm bg-transparent text-slate-900 placeholder:text-slate-400 focus:outline-none font-mono"
             />
             {isArea && (
-              <div className="flex items-center px-3 bg-slate-50 text-slate-500 text-xs font-medium border-l border-slate-200 select-none">
+              <div className="flex items-center px-3.5 bg-black/[0.02] text-slate-500 text-xs font-medium border-l border-black/[0.06] select-none">
                 sq. ft
               </div>
             )}
@@ -192,13 +201,9 @@ export const DynamicField: React.FC<DynamicFieldProps> = ({
             onChange={(e) => onChange(e.target.value)}
             placeholder={placeholder || `Enter details for ${label.toLowerCase()}...`}
             maxLength={validation_rules.max_length || 1000}
-            className={`w-full px-3.5 py-2.5 text-sm rounded-xl border bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 transition-all ${
-              error
-                ? 'border-rose-300 focus:border-rose-500 focus:ring-rose-500/20'
-                : 'border-slate-300 focus:border-brand-600 focus:ring-brand-600/20'
-            }`}
+            className={`${inputBaseClass} leading-relaxed resize-none`}
           />
-          <div className="flex justify-between items-center text-[11px] text-slate-400 mt-1">
+          <div className="flex justify-between items-center text-[10px] text-slate-400 mt-1 px-1">
             {renderFeedback()}
             <span>{(value || '').length} / {validation_rules.max_length || 1000}</span>
           </div>
@@ -215,11 +220,7 @@ export const DynamicField: React.FC<DynamicFieldProps> = ({
               id={field_key}
               value={value ?? ''}
               onChange={(e) => onChange(e.target.value)}
-              className={`w-full px-3.5 py-2.5 text-sm rounded-xl border bg-white text-slate-900 focus:outline-none focus:ring-2 appearance-none transition-all ${
-                error
-                  ? 'border-rose-300 focus:border-rose-500 focus:ring-rose-500/20'
-                  : 'border-slate-300 focus:border-brand-600 focus:ring-brand-600/20'
-              }`}
+              className={`${inputBaseClass} appearance-none pr-10 cursor-pointer font-medium`}
             >
               <option value="">{placeholder || `Select ${label}`}</option>
               {options.map((opt) => (
@@ -228,7 +229,7 @@ export const DynamicField: React.FC<DynamicFieldProps> = ({
                 </option>
               ))}
             </select>
-            <div className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">
+            <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
               </svg>
@@ -243,7 +244,7 @@ export const DynamicField: React.FC<DynamicFieldProps> = ({
       return (
         <div>
           {renderLabel()}
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
             {options.map((opt) => {
               const isSelected = value === opt.value;
               return (
@@ -251,19 +252,19 @@ export const DynamicField: React.FC<DynamicFieldProps> = ({
                   type="button"
                   key={String(opt.value)}
                   onClick={() => onChange(opt.value)}
-                  className={`flex items-center justify-between px-3.5 py-3 rounded-xl border text-left text-xs font-semibold transition-all ${
+                  className={`flex items-center justify-between px-4 py-3 rounded-2xl border text-left text-xs font-semibold active:scale-[0.98] transition-all cursor-pointer ${
                     isSelected
-                      ? 'bg-brand-50/80 border-brand-600 text-brand-900 ring-2 ring-brand-600/20 shadow-2xs'
-                      : 'bg-white border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50'
+                      ? 'bg-slate-900 border-slate-900 text-white shadow-apple-sm'
+                      : 'bg-slate-50/70 border-black/[0.08] text-slate-800 hover:border-black/[0.16] hover:bg-slate-50'
                   }`}
                 >
-                  <span>{opt.label}</span>
+                  <span className="truncate">{opt.label}</span>
                   <span
-                    className={`w-4 h-4 rounded-full border flex items-center justify-center transition-colors ${
-                      isSelected ? 'border-brand-600 bg-brand-600' : 'border-slate-300'
+                    className={`w-4 h-4 rounded-full border flex items-center justify-center transition-colors shrink-0 ml-2 ${
+                      isSelected ? 'border-white bg-white' : 'border-slate-300'
                     }`}
                   >
-                    {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-white" />}
+                    {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-slate-900" />}
                   </span>
                 </button>
               );
@@ -295,19 +296,13 @@ export const DynamicField: React.FC<DynamicFieldProps> = ({
                   type="button"
                   key={String(opt.value)}
                   onClick={() => toggleOption(opt.value)}
-                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
+                  className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold border active:scale-[0.97] transition-all cursor-pointer ${
                     isSelected
-                      ? 'bg-brand-50 border-brand-600 text-brand-800 shadow-2xs'
-                      : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50'
+                      ? 'bg-slate-900 border-slate-900 text-white shadow-xs'
+                      : 'bg-slate-50/70 border-black/[0.08] text-slate-700 hover:border-black/[0.16] hover:bg-slate-50'
                   }`}
                 >
-                  <span
-                    className={`w-3.5 h-3.5 rounded flex items-center justify-center border transition-colors ${
-                      isSelected ? 'bg-brand-600 border-brand-600 text-white' : 'border-slate-300 bg-white'
-                    }`}
-                  >
-                    {isSelected && <Check className="w-2.5 h-2.5" />}
-                  </span>
+                  {isSelected && <Check className="w-3 h-3 text-white" />}
                   <span>{opt.label}</span>
                 </button>
               );
@@ -339,14 +334,10 @@ export const DynamicField: React.FC<DynamicFieldProps> = ({
               type="text"
               value={value || ''}
               onChange={(e) => onChange(e.target.value)}
-              placeholder={placeholder || 'e.g. Near Big Bazaar, Opposite Bank of Baroda'}
-              className={`w-full px-3.5 py-2.5 text-sm rounded-xl border bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 transition-all ${
-                error
-                  ? 'border-rose-300 focus:border-rose-500 focus:ring-rose-500/20'
-                  : 'border-slate-300 focus:border-brand-600 focus:ring-brand-600/20'
-              }`}
+              placeholder={placeholder || 'e.g. Near City Center, Opposite Metro'}
+              className={inputBaseClass}
             />
-            <Compass className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <Compass className="w-4 h-4 text-slate-400 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           </div>
           {renderFeedback()}
         </div>
@@ -400,7 +391,7 @@ export const DynamicField: React.FC<DynamicFieldProps> = ({
               type="checkbox"
               checked={isChecked}
               onChange={(e) => onChange(e.target.checked)}
-              className="mt-1 w-4 h-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500 focus:ring-offset-0 cursor-pointer"
+              className="mt-0.5 w-4 h-4 rounded-md border-black/[0.15] text-slate-900 focus:ring-0 cursor-pointer"
             />
             <span className="text-xs text-slate-600 leading-relaxed group-hover:text-slate-900 transition-colors">
               {help_text || description || label}
@@ -422,7 +413,7 @@ export const DynamicField: React.FC<DynamicFieldProps> = ({
             value={value || ''}
             onChange={(e) => onChange(e.target.value)}
             placeholder={placeholder || ''}
-            className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-600/20 focus:border-brand-600"
+            className={inputBaseClass}
           />
           {renderFeedback()}
         </div>
