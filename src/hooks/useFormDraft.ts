@@ -13,7 +13,7 @@ export function useFormDraft(versionId: string) {
   useEffect(() => {
     if (!versionId) return;
     try {
-      const saved = localStorage.getItem(storageKey);
+      const saved = sessionStorage.getItem(storageKey);
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Object.keys(parsed).length > 0) {
@@ -22,7 +22,7 @@ export function useFormDraft(versionId: string) {
         }
       }
     } catch (e) {
-      console.warn('Failed to load form draft from localStorage:', e);
+      console.warn('Failed to load form draft from sessionStorage:', e);
     }
   }, [versionId, storageKey]);
 
@@ -37,10 +37,10 @@ export function useFormDraft(versionId: string) {
     const timer = setTimeout(() => {
       try {
         if (Object.keys(draft).length > 0) {
-          localStorage.setItem(storageKey, JSON.stringify(draft));
+          sessionStorage.setItem(storageKey, JSON.stringify(draft));
         }
       } catch (e) {
-        console.warn('Failed to persist draft to localStorage:', e);
+        console.warn('Failed to persist draft to sessionStorage:', e);
       }
     }, 400);
 
@@ -49,7 +49,7 @@ export function useFormDraft(versionId: string) {
 
   const clearDraft = () => {
     try {
-      localStorage.removeItem(storageKey);
+      sessionStorage.removeItem(storageKey);
       setDraft({});
       setIsDraftRestored(false);
     } catch (e) {

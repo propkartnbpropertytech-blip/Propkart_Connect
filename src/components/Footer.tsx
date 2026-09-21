@@ -10,7 +10,7 @@ export const Footer: React.FC = () => {
           <span>PropKart Technology Ecosystem • Real-time Property Desk</span>
         </div>
         <p className="text-[11px] text-slate-400">
-          Powered by PropKart Dynamic Forms Architecture. Your property submission is encrypted and securely routed to our telecaller team.
+          Powered by PropKart Dynamic Forms Architecture. Your property submission is encrypted with AES-256 and securely stored in the authorized property pool.
         </p>
         <p className="text-[10px] text-slate-400">
           © {new Date().getFullYear()} PropKart NB Property Tech. All rights reserved.

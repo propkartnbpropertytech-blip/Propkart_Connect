@@ -77,6 +77,7 @@ export interface FormSchema {
   slug: string;
   title: string;
   description?: string | null;
+  assistance_phone?: string;
   version: FormVersion;
   sections: FormSection[];
 }

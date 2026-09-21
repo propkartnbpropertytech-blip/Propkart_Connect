@@ -82,18 +82,32 @@ npm run preview
 
 ---
 
-## 🚀 CI/CD Pipeline
+## 🚀 CI/CD Pipeline & Automated Deployment (v1.0.0)
 
-- **GitHub Actions CI (`.github/workflows/ci.yml`):**
-  - Triggered on every Pull Request and push to `main`.
-  - Runs dependency install, unit tests (`vitest`), and TypeScript build check.
-- **GitHub Actions Deploy (`.github/workflows/deploy.yml`):**
-  - Builds production bundle and runs smoke verification.
+Every push to `main` triggers automated build and deployment to the Hostinger VPS via GitHub Actions:
+
+- **Workflow:** [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml)
+- **Production URL:** `https://propconnect.nbpropertytech.com`
+- **Zero-Touch Isolation Policy:** The deployment workflow strictly targets `/root/propconnect-stack/connect-dist` and restarts only the `propconnect-web` container (`docker restart propconnect-web`). It has zero interaction with any other container on the VPS (`traefik`, `propkart-backend`, `supabase-db`, etc.).
+
+### Required GitHub Repository Secrets
+
+Configure the following secrets in **Repository Settings → Secrets and variables → Actions**:
+
+| Secret Name | Description | Example / Recommended Value |
+|---|---|---|
+| `VPS_HOST` | Hostinger VPS Public IP Address | `200.234.36.120` |
+| `VPS_USERNAME` | SSH User | `root` |
+| `VPS_SSH_KEY` | Dedicated OpenSSH ed25519 Deployment Private Key | Key generated on VPS (`/root/.ssh/github_actions_deploy_key`) |
+| `VPS_SSH_PASSWORD` | Fallback SSH password (if key is not provided) | VPS password |
+| `VPS_PORT` | SSH Port (default: `22`) | `22` |
 
 ---
 
-## 🔐 Security & Privacy
+## 🔐 Z+ Security & Privacy Hardening
 
-- No database credentials or internal administrative secrets are exposed to the client.
-- All submissions are authenticated against the backend schema and sanitized.
-- Server-side rate limiting and CORS protection.
+- **Zero Secret Credentials in Git:** All API URLs use relative paths (`/api/v1`), `.env` files are ignored, and zero tokens or passwords exist in the codebase.
+- **Ephemeral Session Storage:** In-progress form drafts are stored in `sessionStorage` (purged on tab close) to prevent privacy leaks on shared devices.
+- **Reverse Proxy Architecture:** Nginx acts as reverse proxy on port 80, terminating SSL via Traefik and proxying `/api/v1/` to the backend.
+- **Strict Headers:** Enforces `X-Frame-Options: SAMEORIGIN`, `X-Content-Type-Options: nosniff`, and `Referrer-Policy: strict-origin-when-cross-origin`.
+

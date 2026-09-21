@@ -7,9 +7,15 @@ interface SuccessViewProps {
   result: SubmissionResult;
   onReset: () => void;
   formData: Record<string, any>;
+  assistancePhone?: string;
 }
 
-export const SuccessView: React.FC<SuccessViewProps> = ({ result, onReset, formData }) => {
+export const SuccessView: React.FC<SuccessViewProps> = ({
+  result,
+  onReset,
+  formData,
+  assistancePhone = '+91 9879458308',
+}) => {
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
@@ -32,10 +38,25 @@ export const SuccessView: React.FC<SuccessViewProps> = ({ result, onReset, formD
     setTimeout(() => setCopied(false), 2500);
   };
 
+  // Clean and format dynamic assistance phone for WhatsApp (wa.me expects country code + digits, e.g. 919879458308)
+  const rawDigits = (assistancePhone || '').replace(/\D/g, '');
+  let cleanWaNumber = rawDigits;
+  if (cleanWaNumber.startsWith('0')) {
+    cleanWaNumber = cleanWaNumber.substring(1);
+  }
+  if (cleanWaNumber.length === 10) {
+    cleanWaNumber = `91${cleanWaNumber}`;
+  } else if (!cleanWaNumber.startsWith('91') && cleanWaNumber.length > 0) {
+    cleanWaNumber = `91${cleanWaNumber}`;
+  }
+  if (!cleanWaNumber) {
+    cleanWaNumber = '919879458308';
+  }
+
   const whatsappMessage = encodeURIComponent(
     `Hello PropKart Team, I have registered my property with Registration ID: ${result.registration_code}. Please assist me with verification and next steps.`
   );
-  const whatsappUrl = `https://wa.me/919898012345?text=${whatsappMessage}`;
+  const whatsappUrl = `https://wa.me/${cleanWaNumber}?text=${whatsappMessage}`;
 
   const ownerName = formData.owner_name || formData.full_name || 'Property Owner';
   const propType = formData.property_type || 'Property';
@@ -94,7 +115,7 @@ export const SuccessView: React.FC<SuccessViewProps> = ({ result, onReset, formD
 
           <div className="grid grid-cols-2 gap-3 pt-1">
             <a
-              href="tel:+919898012345"
+              href={`tel:${assistancePhone.replace(/[^0-9+]/g, '')}`}
               className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-slate-300 hover:border-slate-400 bg-white text-slate-700 text-xs font-semibold hover:bg-slate-50 transition-all"
             >
               <PhoneCall className="w-3.5 h-3.5 text-slate-500" />

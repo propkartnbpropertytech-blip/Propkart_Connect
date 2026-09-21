@@ -1,7 +1,13 @@
 import React from 'react';
 import { Building2, Shield, PhoneCall } from 'lucide-react';
 
-export const Navbar: React.FC = () => {
+interface NavbarProps {
+  assistancePhone?: string;
+}
+
+export const Navbar: React.FC<NavbarProps> = ({ assistancePhone = '+91 9879458308' }) => {
+  const telHref = `tel:${assistancePhone.replace(/[^0-9+]/g, '')}`;
+
   return (
     <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-200/80">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
@@ -33,12 +39,13 @@ export const Navbar: React.FC = () => {
           </div>
 
           <a
-            href="tel:+919898012345"
-            className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+            href={telHref}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs"
+            title={`Call PropKart Assistance: ${assistancePhone}`}
           >
-            <PhoneCall className="w-3.5 h-3.5 text-brand-600" />
-            <span className="hidden sm:inline">Assistance:</span>
-            <span className="hidden xs:inline">+91 98980 12345</span>
+            <PhoneCall className="w-3.5 h-3.5 text-brand-600 shrink-0" />
+            <span className="text-slate-500 font-normal hidden sm:inline">Assistance:</span>
+            <span className="font-mono text-slate-900 font-semibold">{assistancePhone}</span>
           </a>
         </div>
       </div>

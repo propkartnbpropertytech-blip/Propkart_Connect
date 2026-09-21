@@ -27,7 +27,7 @@ export const App: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50">
-      <Navbar />
+      <Navbar assistancePhone={form?.assistance_phone} />
 
       <main className="flex-1">
         {loading && <SkeletonLoader />}
@@ -56,6 +56,7 @@ export const App: React.FC = () => {
                 result={submissionSuccess}
                 onReset={handleReset}
                 formData={submittedData}
+                assistancePhone={form?.assistance_phone}
               />
             ) : (
               <DynamicFormRenderer
