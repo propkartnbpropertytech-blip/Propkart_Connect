@@ -85,6 +85,15 @@ export const DynamicFormRenderer: React.FC<DynamicFormRendererProps> = ({ schema
           newErrors[field.field_key] = 'Please enter a valid email address.';
           if (!firstErrorFieldKey) firstErrorFieldKey = field.field_key;
         }
+      } else if (field.field_type === 'google_location') {
+        const locUrl = typeof val === 'object' ? (val.url || val.location_url) : val;
+        if (locUrl && typeof locUrl === 'string') {
+          const isGoogleMaps = /^https:\/\/(www\.)?(google\.[a-z.]+\/maps|maps\.google\.[a-z.]+|maps\.app\.goo\.gl|goo\.gl\/maps)/i.test(locUrl.trim());
+          if (!isGoogleMaps) {
+            newErrors[field.field_key] = 'Only official Google Maps links (e.g. https://maps.app.goo.gl/... or https://maps.google.com/...) are accepted.';
+            if (!firstErrorFieldKey) firstErrorFieldKey = field.field_key;
+          }
+        }
       }
     }
 

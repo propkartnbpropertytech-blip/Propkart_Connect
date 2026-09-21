@@ -21,8 +21,9 @@ export const Navbar: React.FC<NavbarProps> = ({ assistancePhone = '+91 987945830
               <span className="font-display font-bold text-base sm:text-lg text-slate-900 tracking-tight">
                 PropKart <span className="text-brand-600">Connect</span>
               </span>
-              <span className="hidden xs:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-brand-50 text-brand-700 border border-brand-200 uppercase tracking-wider">
-                Instant Registration
+              <span className="hidden xs:inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-brand-50 text-brand-700 border border-brand-200 uppercase tracking-wider">
+                <span>Instant Registration</span>
+                <span className="font-mono font-bold text-brand-800 bg-brand-100/80 px-1 rounded">v1.0.0</span>
               </span>
             </div>
             <p className="text-[11px] text-slate-500 hidden sm:block">
