@@ -61,12 +61,26 @@ export const PropertyShowcaseView: React.FC<PropertyShowcaseViewProps> = ({
       ? `₹${Number(property.expected_price).toLocaleString('en-IN')}${isRent ? ' / month' : ''}`
       : 'Price on Request';
 
-    const text = `🏡 *PropKart Verified Property* (${property.registration_code})
-• *Type:* ${property.property_type || 'Residential'} (${property.listing_type || 'Sale'})
-• *Price:* ${priceText}
-• *Location:* ${property.address || property.area || ''}, ${property.city || ''}
-${property.direction ? `• *Landmark:* ${property.direction}\n` : ''}${property.location_url ? `• *Google Maps:* ${property.location_url}\n` : ''}
-🔗 *View Full Property Showcase:* ${window.location.href}`;
+    let text = `🏡 *PropKart Verified Property* (${property.registration_code})\n` +
+      `• *Type:* ${property.property_type || 'Residential'} (${property.listing_type || 'Sale'})\n` +
+      `• *Price:* ${priceText}\n` +
+      `• *Location:* ${property.address || property.area || ''}, ${property.city || 'Ahmedabad'}\n`;
+
+    if (property.direction) {
+      text += `• *Landmark:* ${property.direction}\n`;
+    }
+
+    if (property.dynamic_fields && property.dynamic_fields.length > 0) {
+      property.dynamic_fields.slice(0, 4).forEach((f: any) => {
+        text += `• *${f.label}:* ${f.value}\n`;
+      });
+    }
+
+    if (property.location_url) {
+      text += `• *Google Maps:* ${property.location_url}\n`;
+    }
+
+    text += `🔗 *View Full Property Showcase:* ${window.location.href}`;
 
     window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
   };
@@ -220,32 +234,48 @@ ${property.direction ? `• *Landmark:* ${property.direction}\n` : ''}${property
           </div>
         )}
 
-        {/* Specifications & Location Grid */}
+        {/* Dynamic Specifications & Location Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-          {/* Address & City */}
-          <div className="p-4 rounded-2xl bg-slate-50/70 border border-black/[0.06] space-y-1.5">
-            <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-700">
-              <MapPin className="w-4 h-4 text-emerald-600" />
-              <span>Property Address</span>
+          {/* Address & Locality */}
+          {(property.address || property.area) && (
+            <div className="p-4 rounded-2xl bg-slate-50/70 border border-black/[0.06] space-y-1.5">
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-700">
+                <MapPin className="w-4 h-4 text-emerald-600" />
+                <span>Property Address</span>
+              </div>
+              <p className="text-xs text-slate-800 leading-relaxed">
+                {property.address || 'Address on record'}
+              </p>
+              <p className="text-[11px] text-slate-500 font-medium">
+                {property.area ? `${property.area}, ` : ''}{property.city || 'Ahmedabad, Gujarat'}
+              </p>
             </div>
-            <p className="text-xs text-slate-800 leading-relaxed">
-              {property.address || 'Address on record'}
-            </p>
-            <p className="text-[11px] text-slate-500 font-medium">
-              {property.area ? `${property.area}, ` : ''}{property.city || 'Surat, Gujarat'}
-            </p>
-          </div>
+          )}
 
-          {/* Direction & Landmarks */}
-          <div className="p-4 rounded-2xl bg-slate-50/70 border border-black/[0.06] space-y-1.5">
-            <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-700">
-              <Compass className="w-4 h-4 text-emerald-600" />
-              <span>Direction & Landmarks</span>
+          {/* Direction & Landmarks: ONLY shown if field is present in schema and has non-empty value */}
+          {property.direction && property.direction !== 'null' && property.direction !== 'N/A' && (
+            <div className="p-4 rounded-2xl bg-slate-50/70 border border-black/[0.06] space-y-1.5">
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-700">
+                <Compass className="w-4 h-4 text-emerald-600" />
+                <span>Direction & Landmarks</span>
+              </div>
+              <p className="text-xs text-slate-800 leading-relaxed font-medium">
+                {property.direction}
+              </p>
             </div>
-            <p className="text-xs text-slate-800 leading-relaxed">
-              {property.direction || 'Prominent locality landmark available upon contact.'}
-            </p>
-          </div>
+          )}
+
+          {/* Dynamic Form Specifications */}
+          {property.dynamic_fields && property.dynamic_fields.map((f: any) => (
+            <div key={f.key} className="p-4 rounded-2xl bg-slate-50/70 border border-black/[0.06] space-y-1">
+              <span className="block text-[10px] text-slate-400 uppercase font-semibold tracking-wider">
+                {f.label}
+              </span>
+              <p className="text-xs font-semibold text-slate-800 leading-relaxed break-words">
+                {typeof f.value === 'object' ? JSON.stringify(f.value) : String(f.value)}
+              </p>
+            </div>
+          ))}
         </div>
 
         {/* Google Maps Button */}

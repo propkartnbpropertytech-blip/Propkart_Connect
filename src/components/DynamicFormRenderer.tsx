@@ -33,8 +33,6 @@ export const DynamicFormRenderer: React.FC<DynamicFormRendererProps> = ({ schema
   const [uploadedMedia, setUploadedMedia] = useState<UploadedMediaItem[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [checkingPhone, setCheckingPhone] = useState(false);
-  const [duplicatePhoneFound, setDuplicatePhoneFound] = useState(false);
   const [snackbar, setSnackbar] = useState<{ isOpen: boolean; message: string; type: 'success' | 'error' | 'info' }>({
     isOpen: false,
     message: '',
@@ -46,47 +44,6 @@ export const DynamicFormRenderer: React.FC<DynamicFormRendererProps> = ({ schema
     .flatMap((sec) => sec.fields || [])
     .filter((f) => f.is_active !== false)
     .sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0));
-
-  // Live duplicate phone check (debounced)
-  useEffect(() => {
-    const phoneKey = draft.mobile_number !== undefined ? 'mobile_number' : 'owner_phone';
-    const rawVal = draft[phoneKey];
-    if (!rawVal) {
-      setDuplicatePhoneFound(false);
-      return;
-    }
-
-    const digits = String(rawVal).replace(/\D/g, '').slice(-10);
-    if (digits.length === 10 && digits !== assistanceDigits) {
-      const timer = setTimeout(async () => {
-        try {
-          setCheckingPhone(true);
-          const res = await checkPhoneDuplicate(digits);
-          if (res.exists) {
-            setDuplicatePhoneFound(true);
-            setErrors((prev) => ({
-              ...prev,
-              [phoneKey]: 'This mobile number is already registered in our system. Duplicate submissions are not allowed.',
-            }));
-          } else {
-            setDuplicatePhoneFound(false);
-            setErrors((prev) => {
-              const copy = { ...prev };
-              if (copy[phoneKey]?.includes('already registered')) {
-                delete copy[phoneKey];
-              }
-              return copy;
-            });
-          }
-        } catch (_) {
-        } finally {
-          setCheckingPhone(false);
-        }
-      }, 400);
-
-      return () => clearTimeout(timer);
-    }
-  }, [draft.mobile_number, draft.owner_phone, assistanceDigits]);
 
   // Single-page form validation
   const validateForm = (): boolean => {
@@ -158,12 +115,6 @@ export const DynamicFormRenderer: React.FC<DynamicFormRendererProps> = ({ schema
       }
     }
 
-    if (duplicatePhoneFound) {
-      const phoneKey = draft.mobile_number !== undefined ? 'mobile_number' : 'owner_phone';
-      newErrors[phoneKey] = 'This mobile number is already registered in our system. Duplicate submissions are not allowed.';
-      if (!firstErrorFieldKey) firstErrorFieldKey = phoneKey;
-    }
-
     setErrors(newErrors);
 
     if (firstErrorFieldKey) {
@@ -180,15 +131,6 @@ export const DynamicFormRenderer: React.FC<DynamicFormRendererProps> = ({ schema
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (duplicatePhoneFound) {
-      setSnackbar({
-        isOpen: true,
-        message: 'This mobile number is already registered. Duplicate submissions are not allowed.',
-        type: 'error',
-      });
-      return;
-    }
-
     if (!validateForm()) {
       setSnackbar({
         isOpen: true,
@@ -196,31 +138,6 @@ export const DynamicFormRenderer: React.FC<DynamicFormRendererProps> = ({ schema
         type: 'error',
       });
       return;
-    }
-
-    // Double check phone duplicate right before submit
-    const phoneKey = draft.mobile_number !== undefined ? 'mobile_number' : 'owner_phone';
-    const phoneVal = draft[phoneKey];
-    if (phoneVal) {
-      const cleanDigits = String(phoneVal).replace(/\D/g, '').slice(-10);
-      if (cleanDigits.length === 10) {
-        try {
-          const dupRes = await checkPhoneDuplicate(cleanDigits);
-          if (dupRes.exists) {
-            setDuplicatePhoneFound(true);
-            setErrors((prev) => ({
-              ...prev,
-              [phoneKey]: 'This mobile number is already registered in our system. Duplicate submissions are not allowed.',
-            }));
-            setSnackbar({
-              isOpen: true,
-              message: 'This mobile number is already registered in our system. Duplicate submissions are not allowed.',
-              type: 'error',
-            });
-            return;
-          }
-        } catch (_) {}
-      }
     }
 
     setIsSubmitting(true);

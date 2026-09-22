@@ -1,113 +1,144 @@
 # 🏡 PropKart Connect
 
-> **Instant Public Property Registration Application**  
-> Public-facing, responsive property registration form app powered by the PropKart Dynamic Forms Architecture.
+> **Dynamic Public Property Registration & Showcase Application**  
+> Responsive web application enabling property owners, brokers, and landlords to list properties with real-time validation, rich media uploads, and dynamic schema rendering powered by PropKart Panel.
 
 ---
 
 ## 🌟 Overview
 
-**PropKart Connect** allows property owners, brokers, and landlords to register their properties in a few simple, beautifully guided steps.
-The entire form structure (sections, fields, placeholders, validations, photo limits, video limits, options) is **100% dynamic** and controlled directly from **PropKart Panel → Form Builder**.
+**PropKart Connect** is the public gateway of the PropKart ecosystem. Unlike rigid real estate forms, PropKart Connect's forms are **100% dynamic**—all form sections, fields, input constraints, and media limits are centrally configured and published from **PropKart Panel**.
+
+The application also serves as the public **Property Showcase**, providing prospective buyers and tenants with verified property listings, interactive photo galleries, and location details via shareable links.
 
 ```
-PropKart Connect (Public App)
-          │
-          ▼  GET /api/v1/forms/active
-Shared Backend API (Hostinger VPS)
-          │
-          ▼  Realtime PostgreSQL
-PropKart Panel (Internal / Telecaller Portal)
+┌─────────────────────────────────────────────────────────┐
+│              PropKart Connect (Public Web)              │
+│  • Stepped Dynamic Wizard    • Media Drag-and-Drop      │
+│  • Public Property Showcase  • Auto Draft Recovery      │
+└──────────────────────────┬──────────────────────────────┘
+                           │
+                           ▼ HTTPS
+┌─────────────────────────────────────────────────────────┐
+│                 Shared Backend API                      │
+│        Node.js / Express • PostgreSQL Database          │
+└──────────────────────────▲──────────────────────────────┘
+                           │
+                           ▼ WSS / HTTPS
+┌─────────────────────────────────────────────────────────┐
+│              PropKart Panel (Admin / Ops)               │
+│  • Dynamic Form Builder      • Submission Operations    │
+│  • Telecaller Desk           • 3-Way Sharing Hub        │
+└─────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## ✨ Features
+## ✨ Key Features
 
-- **100% Dynamic Form Engine:** Renders any field configured in PropKart Panel (Short text, Textarea, Name, Indian Mobile Number, Email, Currency, Area, Dropdown, Radio, Checkbox, Multi-select, Photos up to 50, Videos up to 30, Google Maps GPS Location, Directions, Remarks, Declaration Consent).
-- **Stepped Form Wizard:** Smooth step-by-step navigation with progress indicators, completion checks, and responsive mobile-first UX.
-- **Client & Server Parity Validation:** Strict validation rules enforced both client-side and server-side.
-- **Automatic Draft Recovery:** In-progress forms are automatically saved to browser storage. If a user refreshes or navigates away accidentally, their draft is seamlessly restored.
-- **Media Management:**
-  - Up to 50 high-res property photos.
-  - Up to 30 video walkthroughs.
-  - Drag-and-drop, client-side thumbnail previews, and per-file upload indicators.
-- **Location & Navigation:**
-  - One-tap "Use My Location" via browser GPS.
-  - Interactive Google Maps URL validation and test link button.
-  - Landmark direction instructions.
-- **Celebratory Success Experience:**
-  - Registration ID badge (`PK-REG-2026-XXXXX`) with one-click copy.
-  - Instant "Connect on WhatsApp" link with pre-filled message for verification.
-  - Option to register another property.
+### 📝 Dynamic Form Wizard
+- **Centrally Governed Schema:** Sections, fields, labels, placeholders, and validation rules update instantly whenever published in PropKart Panel.
+- **Stepped Guided Experience:** Multi-step wizard layout with interactive progress tracking, section validation, and mobile ergonomics.
+- **Smart Validation Engine:**
+  - Standardized 10-digit Indian phone verification (`+91`).
+  - Expected rent/price threshold sanity checks.
+  - Required field indicators and real-time error messaging.
+- **Seamless Draft Recovery:** In-flight entries are saved to browser session storage, allowing users to safely recover their input upon accidental refresh or navigation.
+
+### 📸 High-Resolution Media Upload
+- **Photo Gallery:** Supports high-resolution property imagery (up to 50 photos) with drag-and-drop support, thumbnail previews, and individual removal.
+- **Video Walkthroughs:** Allows video uploads (up to 30 clips) with file size validation and preview indicators.
+
+### 📍 Location & Landmark Assistance
+- **Geolocation:** One-tap GPS coordinate capture via browser Location API.
+- **Navigation Links:** Support for direct Google Maps links and landmark navigation instructions for prospective visitors.
+
+### 🔍 Public Property Showcase (`/?view=<id>`)
+- **Direct Link Sharing:** Displays verified property submissions in an elegant, customer-ready presentation.
+- **Dynamic Field Rendering:** Only presents active and populated fields, automatically omitting unused or removed schema fields.
+- **Image Carousel & Lightbox:** Interactive, high-resolution image viewer with thumbnail selection.
+- **Call-to-Action:** Built-in contact and inquiry options for prospective buyers or tenants.
 
 ---
 
-## 🛠️ Local Development
+## 🔐 Security & Privacy
+
+- **Zero Hardcoded Credentials:** No tokens, API keys, or raw IP addresses are committed to source control.
+- **Session Protection:** Draft form data resides in temporary `sessionStorage` and is purged upon session completion or window closure.
+- **Reverse Proxy Architecture:** Production traffic is served via Nginx behind Traefik SSL termination.
+- **Security Headers:** Hardened against clickjacking and MIME-type sniffing via `X-Frame-Options`, `X-Content-Type-Options`, and strict referrer policies.
+
+---
+
+## 💻 Tech Stack
+
+- **Framework:** React 18 with TypeScript
+- **Bundler:** Vite
+- **Styling:** Tailwind CSS, PostCSS
+- **Icons:** Lucide React
+- **HTTP Client:** Axios
+
+---
+
+## 🚀 Getting Started
 
 ### Prerequisites
-- Node.js >= 18.0.0
-- npm >= 9.0.0
+- **Node.js:** `>= 18.0.0`
+- **npm:** `>= 9.0.0`
 
-### Setup
+### Local Development Setup
+
 ```bash
-# 1. Clone repository
+# 1. Clone the repository
 git clone https://github.com/propkartnbpropertytech-blip/Propkart_Connect.git
 cd Propkart_Connect
 
 # 2. Install dependencies
 npm install
 
-# 3. Configure environment
+# 3. Create local environment configuration
 cp .env.example .env
 
-# 4. Start local development server
+# 4. Start the development server
 npm run dev
 ```
 
-### Testing
-```bash
-# Run unit tests
-npm test
-```
+The application will run locally at `http://localhost:5173` (or the port shown in your terminal).
 
-### Production Build
-```bash
-# Build production bundle
-npm run build
+### Available Scripts
 
-# Preview build locally
-npm run preview
-```
+| Command | Description |
+|---|---|
+| `npm run dev` | Starts Vite local development server with Hot Module Replacement |
+| `npm run build` | Compiles optimized production bundle in `dist/` |
+| `npm run preview` | Previews the production build locally |
+| `npm test` | Executes unit tests |
 
 ---
 
-## 🚀 CI/CD Pipeline & Automated Deployment (v1.0.0)
+## 🌐 CI/CD & Production Deployment
 
-Every push to `main` triggers automated build and deployment to the Hostinger VPS via GitHub Actions:
+Continuous deployment is managed via GitHub Actions. Pushes to `main` trigger automated linting, test suites, production bundling, and deployment to the production server.
 
-- **Workflow:** [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml)
+- **Workflow File:** [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml)
 - **Production URL:** `https://propconnect.nbpropertytech.com`
-- **Zero-Touch Isolation Policy:** The deployment workflow strictly targets `/root/propconnect-stack/connect-dist` and restarts only the `propconnect-web` container (`docker restart propconnect-web`). It has zero interaction with any other container on the VPS (`traefik`, `propkart-backend`, `supabase-db`, etc.).
 
-### Required GitHub Repository Secrets
+### Configuring GitHub Secrets
 
-Configure the following secrets in **Repository Settings → Secrets and variables → Actions**:
+Configure the following secrets in your repository settings under **Settings → Secrets and variables → Actions**:
 
-| Secret Name | Description | Example / Recommended Value |
+| Secret Name | Description | Example / Format |
 |---|---|---|
-| `VPS_HOST` | Hostinger VPS Public IP Address | `200.234.36.120` |
-| `VPS_USERNAME` | SSH User | `root` |
-| `VPS_SSH_KEY` | Dedicated OpenSSH ed25519 Deployment Private Key | Key generated on VPS (`/root/.ssh/github_actions_deploy_key`) |
-| `VPS_SSH_PASSWORD` | Fallback SSH password (if key is not provided) | VPS password |
-| `VPS_PORT` | SSH Port (default: `22`) | `22` |
+| `VPS_HOST` | Production server IP or hostname | `<your-server-ip>` |
+| `VPS_USERNAME` | SSH deployment user | `root` or `deploy-user` |
+| `VPS_SSH_KEY` | Dedicated OpenSSH Private Key (recommended) | `-----BEGIN OPENSSH PRIVATE KEY----- ...` |
+| `VPS_SSH_PASSWORD` | Fallback SSH password (if key is omitted) | `<your-ssh-password>` |
+| `VPS_PORT` | SSH daemon port (default: `22`) | `22` |
+
+> 🔒 **Security Notice:** Never commit server credentials, IP addresses, or secrets to the Git repository. Always supply them through GitHub Actions Secrets or host environment files.
 
 ---
 
-## 🔐 Z+ Security & Privacy Hardening
+## 📄 License
 
-- **Zero Secret Credentials in Git:** All API URLs use relative paths (`/api/v1`), `.env` files are ignored, and zero tokens or passwords exist in the codebase.
-- **Ephemeral Session Storage:** In-progress form drafts are stored in `sessionStorage` (purged on tab close) to prevent privacy leaks on shared devices.
-- **Reverse Proxy Architecture:** Nginx acts as reverse proxy on port 80, terminating SSL via Traefik and proxying `/api/v1/` to the backend.
-- **Strict Headers:** Enforces `X-Frame-Options: SAMEORIGIN`, `X-Content-Type-Options: nosniff`, and `Referrer-Policy: strict-origin-when-cross-origin`.
-
+Proprietary software. All rights reserved by **NB Property Technology**.
