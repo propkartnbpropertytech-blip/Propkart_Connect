@@ -1,5 +1,5 @@
 import React from 'react';
-import { Building2, PhoneCall } from 'lucide-react';
+import { Building2, Compass, PhoneCall } from 'lucide-react';
 
 interface NavbarProps {
   assistancePhone?: string;
@@ -26,8 +26,19 @@ export const Navbar: React.FC<NavbarProps> = ({ assistancePhone = '+91 987945830
           </div>
         </div>
 
-        {/* Assistance CTA Pill */}
-        <div className="flex items-center shrink-0">
+        {/* Action Buttons */}
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          <a
+            href="https://listing.nbpropertytech.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium transition-all"
+            title="Browse Public Listings"
+          >
+            <Compass className="w-3.5 h-3.5 text-slate-500" />
+            <span>Listings</span>
+          </a>
+
           <a
             href={telHref}
             className="inline-flex items-center gap-1.5 px-3 sm:px-4 py-1.5 rounded-full bg-black/[0.04] hover:bg-black/[0.08] active:scale-[0.97] transition-all text-xs font-semibold text-slate-800 border border-black/[0.06]"

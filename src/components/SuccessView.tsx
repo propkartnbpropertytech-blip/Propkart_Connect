@@ -125,6 +125,16 @@ export const SuccessView: React.FC<SuccessViewProps> = ({
               <span>Register Another</span>
             </button>
           </div>
+
+          <a
+            href="https://listing.nbpropertytech.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-2 w-full py-2.5 rounded-full bg-[#1d1d1f] hover:bg-black text-white text-xs font-semibold shadow-xs active:scale-[0.98] transition-all"
+          >
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+            <span>Explore Public Listings Portal</span>
+          </a>
         </div>
       </div>
     </div>

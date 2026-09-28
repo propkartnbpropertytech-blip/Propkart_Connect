@@ -12,24 +12,22 @@
 The application also serves as the public **Property Showcase**, providing prospective buyers and tenants with verified property listings, interactive photo galleries, and location details via shareable links.
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│              PropKart Connect (Public Web)              │
-│  • Stepped Dynamic Wizard    • Media Drag-and-Drop      │
-│  • Public Property Showcase  • Auto Draft Recovery      │
-└──────────────────────────┬──────────────────────────────┘
-                           │
-                           ▼ HTTPS
-┌─────────────────────────────────────────────────────────┐
-│                 Shared Backend API                      │
-│        Node.js / Express • PostgreSQL Database          │
-└──────────────────────────▲──────────────────────────────┘
-                           │
-                           ▼ WSS / HTTPS
-┌─────────────────────────────────────────────────────────┐
-│              PropKart Panel (Admin / Ops)               │
-│  • Dynamic Form Builder      • Submission Operations    │
-│  • Telecaller Desk           • 3-Way Sharing Hub        │
-└─────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                       PropKart Web Ecosystem                                │
+│                                                                             │
+│  • PropKart Connect (Owner Intake):    https://propconnect.nbpropertytech.com│
+│  • PropKart Listing (Buyer Showcase):  https://listing.nbpropertytech.com    │
+│  • PropKart Pre-Sales (Projects Desk): https://presales.nbpropertytech.com   │
+│  • PropKart Panel (Admin / Ops Hub):   https://panel.nbpropertytech.com      │
+└──────────────────────────────────────┬──────────────────────────────────────┘
+                                       │
+                                       ▼ HTTPS
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           Shared Backend API                                │
+│                   Node.js / Express • PostgreSQL Database                   │
+│  • Dynamic Forms Engine        • Public Listing API (/api/v1/listings/public)│
+│  • Owner Intake Submissions    • Telecaller Desk & RBAC Operations          │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
